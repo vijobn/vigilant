@@ -26,6 +26,7 @@ if [[ "$(sudo docker images -q ${CONTAINER_NAME} 2> /dev/null)" == "" ]]; then
 else
     echo "Docker image ${CONTAINER_NAME} already exists. Skipping build."
 fi
+    sudo docker build --tag ${CONTAINER_NAME} --cache-from ${CONTAINER_NAME} -t ${CONTAINER} . || sudo docker build -t ${CONTAINER} .
 
 
 # Start Dev container
