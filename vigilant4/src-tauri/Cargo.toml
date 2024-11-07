@@ -1,11 +1,11 @@
 [package]
-name = "app"
+name = "vigilant"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Vigilant GUI App"
 authors = ["you"]
 license = ""
 repository = ""
-default-run = "app"
+default-run = "vigilant"
 edition = "2021"
 rust-version = "1.60"
 
