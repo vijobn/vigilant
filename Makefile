@@ -112,6 +112,14 @@ start: build $(TAURI_APP_NAME)/node_modules
 		(cd $(TAURI_APP_NAME) && pm2 start "$(NPM_CMD)" --name "$(PROCESS_NAME)"); \
 	fi
 
+.PHONY: ui
+ui:
+	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant)
+
+.PHONY: stop
+stop:
+	pm2 stop $(PROCESS_NAME) && pm2 delete $(PROCESS_NAME)
+
 clean:
 	@echo "Cleaning up..."
 	pm2 stop $(PROCESS_NAME) && pm2 delete $(PROCESS_NAME)

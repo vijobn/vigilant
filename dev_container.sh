@@ -34,7 +34,7 @@ fi
 xhost +local:docker
 
 # Starting port
-HOST_PORT=3000
+HOST_PORT=4000
 
 # Check if port is already in use
 while sudo lsof -i :$HOST_PORT > /dev/null 2>&1; do
@@ -48,7 +48,7 @@ sudo docker run -it --rm \
   --env="QT_X11_NO_MITSHM=1" \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v ${PWD}:/usr/src/app/ \
-  -p ${HOST_PORT}:3000 \
+  -p ${HOST_PORT}:4000 \
   ${CONTAINER} \
   /bin/bash -c "echo -e '\nHost port: $HOST_PORT\n'; /bin/bash"
 
