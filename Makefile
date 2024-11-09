@@ -114,7 +114,11 @@ start: build $(TAURI_APP_NAME)/node_modules
 
 .PHONY: ui
 ui:
-	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant)
+ifeq ($(IS_DOCKER),yes)
+	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant ls)
+else
+	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant ls)
+endif
 
 .PHONY: stop
 stop:

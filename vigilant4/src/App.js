@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import VigilantTable from './components/TableView';
+import TitleBanner from './components/TitleBanner';
 
 function App() {
     const [message, setMessage] = useState('');
@@ -12,7 +13,36 @@ function App() {
         { name: 'Karen Joy', age: 39, country: 'USA' }
       ];
     const headers = ['Name', 'Age', 'Country']; // Dynamic header
+    const [leftTitle, setLeftTitle] = useState('Every 2.0 secs');
+    const [centerTitle, setCenterTitle] = useState('Main Title');
+    // Initialize rightTitle with the current time in the watch(1) format
+    const [rightTitle, setRightTitle] = useState(getCurrentTime());
 
+    // Function to get the current time in the watch(1) format: `Tue Nov  7 13:42:15`
+    function getCurrentTime() {
+        return new Intl.DateTimeFormat('en-US', {
+            weekday: 'short', // Abbreviated day (e.g., Tue)
+            month: 'short',   // Abbreviated month (e.g., Nov)
+            day: '2-digit',   // Day of the month with leading zero (e.g., 07)
+            hour: '2-digit',  // Hour (24-hour clock)
+            minute: '2-digit',// Minute
+            second: '2-digit',// Second
+            hour12: false      // 24-hour clock
+        }).format(new Date());
+    }
+ 
+    // Update the rightTitle every 10 seconds
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            const newRightTitle = getCurrentTime(); // Get the current time in watch(1) format
+            setRightTitle(newRightTitle); // Update the rightTitle state
+        }, 10000); // 10000ms = 10 seconds
+ 
+        // Clean up the interval on component unmount
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, []);
 
     useEffect(() => {
         const websocket = new WebSocket('ws://127.0.0.1:8080');
@@ -23,6 +53,26 @@ function App() {
 
         websocket.onmessage = (event) => {
             console.log('Message from server:', event.data);
+
+                  // Check if the message contains the `settitle` command
+            try {
+                const jsonMessage = JSON.parse(event.data);
+                if (jsonMessage.cmd === 'settitle' && jsonMessage.title) {
+                    if (jsonMessage.left) {
+                        setLeftTitle(jsonMessage.left);
+                    }
+                    if (jsonMessage.right) {
+                        setRightTitle(jsonMessage.right);
+                    }
+                    if (jsonMessage.center) {
+                        setCenterTitle(jsonMessage.center);
+                    }
+                //setTitle(jsonMessage.title); // Update the title based on the `settitle` command
+                }
+            } catch (error) {
+                console.error('Failed to parse WebSocket message:', error);
+            }
+
             setMessage(event.data); // Update state with incoming message
         };
 
@@ -55,7 +105,9 @@ function App() {
 
     return (
         <div>
-            <h1>WebSocket Communication</h1>
+            {/* Title Banner Component */}
+            <TitleBanner leftTitle={leftTitle} centerTitle={centerTitle} rightTitle={rightTitle} />
+
             <button onClick={sendJsonMessage}>Send Message</button>
             <p>Message from Rust: {message}</p>
 
