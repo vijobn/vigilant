@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 use futures_util::{SinkExt, StreamExt}; // Keep these imports
+use serde_json::Value;
 
 /*
  * Rust clap documentation
@@ -97,14 +98,21 @@ async fn start_websocket_server() {
         while let Some(message) = reader.next().await {
             match message {
                 Ok(Message::Text(text)) => {
-                    println!("Received: {}", text);
-                    // Echo the received message back
-                    writer.send(Message::Text(format!("Echo: {}", text))).await.unwrap();
+                    // Parse the received JSON message
+                    match serde_json::from_str::<Value>(&text) {
+                        Ok(json_message) => {
+                            println!("Received message: {:?}", json_message);
+                        }
+                        Err(err) => {
+                            println!("Error parsing JSON: {}", err);
+                        }
+                    }
+
+                    // Respond back to the client
+                    let response = "Hello from Rust WebSocket server!";
+                    writer.send(Message::Text(response.to_string())).await.unwrap();
                 }
-                Err(e) => {
-                    eprintln!("Error processing message: {}", e);
-                    break;
-                }
+                Ok(Message::Close(_)) => break,
                 _ => {}
             }
         }

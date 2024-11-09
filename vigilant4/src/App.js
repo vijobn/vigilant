@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import VigilantTable from './components/TableView';
 
 function App() {
     const [message, setMessage] = useState('');
@@ -27,6 +28,16 @@ function App() {
         };
     }, []);
 
+    // Method to send a hello message in JSON format
+    const sendJsonMessage = () => {
+        if (ws) {
+            const messageObject = { greeting: 'Hello', from: 'React' };
+            const jsonMessage = JSON.stringify(messageObject); // Convert object to JSON string
+            ws.send(jsonMessage); // Send the JSON message over WebSocket
+            console.log('Sent JSON message:', jsonMessage);
+        }
+    };
+
     const sendMessage = () => {
         if (ws) {
             ws.send('Hello from React!');
@@ -36,8 +47,10 @@ function App() {
     return (
         <div>
             <h1>WebSocket Communication</h1>
-            <button onClick={sendMessage}>Send Message</button>
+            <button onClick={sendJsonMessage}>Send Message</button>
             <p>Message from Rust: {message}</p>
+
+            <VigilantTable/>
         </div>
     );
 }
