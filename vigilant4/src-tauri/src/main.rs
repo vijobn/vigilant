@@ -3,6 +3,14 @@ use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 use futures_util::{SinkExt, StreamExt}; // Keep these imports
 use serde_json::Value;
+use serde::{Serialize};
+use serde_json::json;
+
+#[derive(Serialize)]
+struct WelcomeMessage {
+    message: String,
+    timestamp: String,
+}
 
 /*
  * Rust clap documentation
@@ -90,9 +98,17 @@ async fn start_websocket_server() {
         // Split the WebSocket stream into a sender and receiver
         let (mut writer, mut reader) = ws_stream.split();
 
-        // Send a welcome message to the client
-        let welcome_message = "Welcome to the WebSocket server!";
-        writer.send(Message::Text(welcome_message.to_string())).await.unwrap();
+        // Create a WelcomeMessage struct
+        let welcome_message = WelcomeMessage {
+            message: "Welcome to the WebSocket server!".to_string(),
+            timestamp: chrono::Utc::now().to_rfc3339(), // Example timestamp
+        };
+
+        // Serialize the struct to a JSON string
+        let json_message = serde_json::to_string(&welcome_message).unwrap();
+
+        // Send the serialized JSON message as a WebSocket message
+        writer.send(Message::Text(json_message)).await.unwrap();
 
         // Handle incoming messages
         while let Some(message) = reader.next().await {
