@@ -21,6 +21,7 @@ tauri = { version = "1.7.0", features = [] }
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.16"
 futures-util = "0.3"
+clap = { version = "4.5.20", features = ["derive"] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
