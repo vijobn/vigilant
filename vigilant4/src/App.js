@@ -4,6 +4,15 @@ import VigilantTable from './components/TableView';
 function App() {
     const [message, setMessage] = useState('');
     const [ws, setWs] = useState(null);
+    const data = [
+        { name: 'John Doe', age: 25, country: 'USA' },
+        { name: 'Jane Smith', age: 30, country: 'Canada' },
+        { name: 'Sam Johnson', age: 22, country: 'UK' },
+        { name: 'Aby Thomas', age: 36, country: 'India' },
+        { name: 'Karen Joy', age: 39, country: 'USA' }
+      ];
+    const headers = ['Name', 'Age', 'Country']; // Dynamic header
+
 
     useEffect(() => {
         const websocket = new WebSocket('ws://127.0.0.1:8080');
@@ -50,7 +59,7 @@ function App() {
             <button onClick={sendJsonMessage}>Send Message</button>
             <p>Message from Rust: {message}</p>
 
-            <VigilantTable/>
+            <VigilantTable headers={headers} data={data}/>
         </div>
     );
 }

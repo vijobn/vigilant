@@ -2,31 +2,36 @@ import React from 'react';
 import { MDBTable, MDBTableHead, MDBTableBody } from 'mdb-react-ui-kit';
 import 'mdb-react-ui-kit/dist/css/mdb.min.css'; // Import the CSS for proper styling
 
-const VigilantTable = () => {
-  const data = [
-    { name: 'John Doe', age: 25, country: 'USA' },
-    { name: 'Jane Smith', age: 30, country: 'Canada' },
-    { name: 'Sam Johnson', age: 22, country: 'UK' },
-    { name: 'Aby Thomas', age: 36, country: 'India' }
-  ];
+// Define the props types
+interface RowData {
+  [key: string]: any; // Row data has dynamic keys
+}
 
+interface VigilantTableProps {
+  headers: string[]; // Array of header names (e.g., ["Name", "Age", "Country"])
+  data: RowData[]; // Array of row objects passed as a prop
+}
+
+const VigilantTable: React.FC<VigilantTableProps> = ({ headers, data }) => {
   return (
     <div style={{ margin: '20px' }}>
       <h2>My React Table with MDB UI Kit</h2>
       <MDBTable striped hover>
         <MDBTableHead>
           <tr>
-            <th>Name</th>
-            <th>Age</th>
-            <th>Country</th>
+            {/* Render the headers dynamically */}
+            {headers.map((header, index) => (
+              <th key={index}>{header}</th>
+            ))}
           </tr>
         </MDBTableHead>
         <MDBTableBody>
-          {data.map((row, index) => (
-            <tr key={index}>
-              <td>{row.name}</td>
-              <td>{row.age}</td>
-              <td>{row.country}</td>
+          {data.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {/* Render each cell dynamically based on the row's properties */}
+              {headers.map((header, headerIndex) => (
+                <td key={headerIndex}>{row[header.toLowerCase()]}</td>
+              ))}
             </tr>
           ))}
         </MDBTableBody>
@@ -36,3 +41,4 @@ const VigilantTable = () => {
 };
 
 export default VigilantTable;
+
