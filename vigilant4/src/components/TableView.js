@@ -15,7 +15,6 @@ interface VigilantTableProps {
 const VigilantTable: React.FC<VigilantTableProps> = ({ headers, data }) => {
   return (
     <div style={{ margin: '20px' }}>
-      <h2>My React Table with MDB UI Kit</h2>
       <MDBTable striped hover>
         <MDBTableHead>
           <tr>

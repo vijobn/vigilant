@@ -5,20 +5,13 @@ import TitleBanner from './components/TitleBanner';
 function App() {
     const [message, setMessage] = useState('');
     const [ws, setWs] = useState(null);
-    const data = [
-        { name: 'John Doe', age: 25, country: 'USA' },
-        { name: 'Jane Smith', age: 30, country: 'Canada' },
-        { name: 'Sam Johnson', age: 22, country: 'UK' },
-        { name: 'Aby Thomas', age: 36, country: 'India' },
-        { name: 'Karen Joy', age: 39, country: 'USA' }
-      ];
-    const headers = ['Name', 'Age', 'Country']; // Dynamic header
-    const [leftTitle, setLeftTitle] = useState('Every 2.0 secs');
+    const [showData, setShowData] = useState([ ]);
+    const [headers, setHeaders] = useState(['Name', 'Age', 'Country']); // Initial headers
+    const [leftTitle, setLeftTitle] = useState('Every 10.0 secs');
     const [centerTitle, setCenterTitle] = useState('Main Title');
-    // Initialize rightTitle with the current time in the watch(1) format
     const [rightTitle, setRightTitle] = useState(getCurrentTime());
 
-    // Function to get the current time in the watch(1) format: `Tue Nov  7 13:42:15`
+    // Function to get the current time in the watch(1) format
     function getCurrentTime() {
         return new Intl.DateTimeFormat('en-US', {
             weekday: 'short', // Abbreviated day (e.g., Tue)
@@ -30,14 +23,14 @@ function App() {
             hour12: false      // 24-hour clock
         }).format(new Date());
     }
- 
+
     // Update the rightTitle every 10 seconds
     useEffect(() => {
         const intervalId = setInterval(() => {
             const newRightTitle = getCurrentTime(); // Get the current time in watch(1) format
             setRightTitle(newRightTitle); // Update the rightTitle state
         }, 10000); // 10000ms = 10 seconds
- 
+
         // Clean up the interval on component unmount
         return () => {
             clearInterval(intervalId);
@@ -54,24 +47,43 @@ function App() {
         websocket.onmessage = (event) => {
             console.log('Message from server:', event.data);
 
-                  // Check if the message contains the `settitle` command
             try {
                 const jsonMessage = JSON.parse(event.data);
-                if (jsonMessage.cmd === 'settitle' && jsonMessage.title) {
-                    if (jsonMessage.left) {
-                        setLeftTitle(jsonMessage.left);
-                    }
-                    if (jsonMessage.right) {
-                        setRightTitle(jsonMessage.right);
-                    }
-                    if (jsonMessage.center) {
-                        setCenterTitle(jsonMessage.center);
-                    }
-                //setTitle(jsonMessage.title); // Update the title based on the `settitle` command
+                if (jsonMessage.command === 'SetTitle') {
+                    if (jsonMessage.left) setLeftTitle(jsonMessage.left);
+                    if (jsonMessage.right) setRightTitle(jsonMessage.right);
+                    if (jsonMessage.center) setCenterTitle(jsonMessage.center);
+                } else if (jsonMessage.command === 'SetHeaders') {
+                    //setHeaders(jsonMessage.headers); // Update headers
+                } else if (jsonMessage.command === 'SetDataRow') {
+                    // Extract index, value, name, country, and age from the message
+                    const { index, name, country, age } = jsonMessage;
+                    // Update the row in showData based on the received index
+                    setShowData((prevData) => {
+                        const updatedData = [...prevData];
+                        // Check if the index exists; if not, push a new row
+                        if (updatedData[index]) {
+                            updatedData[index] = {
+                                ...updatedData[index],  // Keep the other values intact
+                                name,                   // Update name
+                                country,                // Update country
+                                age,                    // Update age
+                            };
+                        } else {
+                            // If index does not exist, add a new row
+                            updatedData.push({
+                                name,
+                                country,
+                                age,
+                            });
+                        }
+                        return updatedData;
+                    });
                 }
             } catch (error) {
                 console.error('Failed to parse WebSocket message:', error);
             }
+            console.log('Data now is', showData);
 
             setMessage(event.data); // Update state with incoming message
         };
@@ -97,21 +109,13 @@ function App() {
         }
     };
 
-    const sendMessage = () => {
-        if (ws) {
-            ws.send('Hello from React!');
-        }
-    };
-
     return (
         <div>
             {/* Title Banner Component */}
             <TitleBanner leftTitle={leftTitle} centerTitle={centerTitle} rightTitle={rightTitle} />
 
-            <button onClick={sendJsonMessage}>Send Message</button>
-            <p>Message from Rust: {message}</p>
-
-            <VigilantTable headers={headers} data={data}/>
+            {/* Render table with dynamic headers and data */}
+            <VigilantTable headers={headers} data={showData} />
         </div>
     );
 }
