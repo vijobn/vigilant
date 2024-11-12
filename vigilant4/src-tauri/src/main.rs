@@ -153,6 +153,21 @@ async fn main() {
         .expect("Error while running tauri application");
 }
 
+use tokio_tungstenite::WebSocketStream;
+use tokio_tungstenite::tungstenite::error::Error; // Correct error import
+use futures_util::stream::SplitSink;
+
+async fn send_json_message(
+    //writer: &mut WebSocketStream<tokio::net::TcpStream>,
+    writer: &mut SplitSink<WebSocketStream<tokio::net::TcpStream>, Message>,
+    rdata: SetDataRow,
+) -> Result<(), Error> {
+    let json_message = serde_json::to_string(&rdata).unwrap();
+    writer.send(Message::Text(json_message.clone())).await?;
+    println!("Sent message {}", json_message);
+    Ok(())
+}
+
 async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
     let addr = "127.0.0.1:8080".parse::<SocketAddr>().unwrap();
     let listener = TcpListener::bind(&addr).await.unwrap();
@@ -205,86 +220,56 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
         // Send the serialized JSON message as a WebSocket message
         writer.send(Message::Text(json_msg3)).await.unwrap();
 
-        // Create a SetDataRow struct
-        let row_message = SetDataRow {
-            command: "SetDataRow".to_string(),
-            index: 0,
-            value: "Rusty  Rust".to_string(),
-            name: "Rusty Lane".to_string(),
-            country: "USA".to_string(),
-            age: 40,
-        };
 
-        // Serialize the struct to a JSON string
-        let json_msg4 = serde_json::to_string(&row_message).unwrap();
+        // Send data rows
+        let rows = vec![
+            SetDataRow {
+                command: "SetDataRow".to_string(),
+                index: 0,
+                value: "Rusty Rust".to_string(),
+                name: "Rusty Lane".to_string(),
+                country: "USA".to_string(),
+                age: 40,
+            },
+            SetDataRow {
+                command: "SetDataRow".to_string(),
+                index: 1,
+                value: "John Doe".to_string(),
+                name: "John Doe".to_string(),
+                country: "USA".to_string(),
+                age: 25,
+            },
+            SetDataRow {
+                command: "SetDataRow".to_string(),
+                index: 2,
+                value: "Jane Smith".to_string(),
+                name: "Jane Smith".to_string(),
+                country: "Canada".to_string(),
+                age: 30,
+            },
+            SetDataRow {
+                command: "SetDataRow".to_string(),
+                index: 3,
+                value: "Rusty  Rust".to_string(),
+                name: "Sam Johnson".to_string(),
+                country: "UK".to_string(),
+                age: 22,
+            },
+            SetDataRow {
+                command: "SetDataRow".to_string(),
+                index: 4,
+                value: "Rusty  Rust".to_string(),
+                name: "Aby Thomas".to_string(),
+                country: "India".to_string(),
+                age: 36,
+            },
+        ];
 
-        // Send the serialized JSON message as a WebSocket message
-        writer.send(Message::Text(json_msg4)).await.unwrap();
-
-
-        // Create a SetDataRow struct
-        let row1 = SetDataRow {
-            command: "SetDataRow".to_string(),
-            index: 1,
-            value: "Rusty  Rust".to_string(),
-            name: "John Doe".to_string(),
-            country: "USA".to_string(),
-            age: 25,
-        };
-
-        // Serialize the struct to a JSON string
-        let json_row1 = serde_json::to_string(&row1).unwrap();
-
-        // Send the serialized JSON message as a WebSocket message
-        writer.send(Message::Text(json_row1)).await.unwrap();
-
-        // Create a SetDataRow struct
-        let row2 = SetDataRow {
-            command: "SetDataRow".to_string(),
-            index: 2,
-            value: "Rusty  Rust".to_string(),
-            name: "Jane Smith".to_string(),
-            country: "Canada".to_string(),
-            age: 30,
-        };
-
-        // Serialize the struct to a JSON string
-        let json_row2 = serde_json::to_string(&row2).unwrap();
-
-        // Send the serialized JSON message as a WebSocket message
-        writer.send(Message::Text(json_row2)).await.unwrap();
-
-        // Create a SetDataRow struct
-        let row3 = SetDataRow {
-            command: "SetDataRow".to_string(),
-            index: 3,
-            value: "Rusty  Rust".to_string(),
-            name: "Sam Johnson".to_string(),
-            country: "UK".to_string(),
-            age: 22,
-        };
-
-        // Serialize the struct to a JSON string
-        let json_row3 = serde_json::to_string(&row3).unwrap();
-
-        // Send the serialized JSON message as a WebSocket message
-        writer.send(Message::Text(json_row3)).await.unwrap();
-
-        // Create a SetDataRow struct
-        let row4 = SetDataRow {
-            command: "SetDataRow".to_string(),
-            index: 4,
-            value: "Rusty  Rust".to_string(),
-            name: "Aby Thomas".to_string(),
-            country: "India".to_string(),
-            age: 36,
-        };
-
-        // Serialize the struct to a JSON string
-        let json_row4 = serde_json::to_string(&row4).unwrap();
-
-        // Send the serialized JSON message as a WebSocket message
-        writer.send(Message::Text(json_row4)).await.unwrap();
+        for row in rows {
+            if let Err(e) = send_json_message(&mut writer, row).await {
+                eprintln!("Failed to send data row: {}", e);
+            }
+        }
 
         // Handle incoming messages
         while let Some(message) = reader.next().await {

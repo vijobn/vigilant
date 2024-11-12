@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import VigilantTable from './components/TableView';
 import TitleBanner from './components/TitleBanner';
 
 function App() {
     const [message, setMessage] = useState('');
     const [ws, setWs] = useState(null);
-    const [showData, setShowData] = useState([ ]);
+    const [showData, setShowData] = useState([]);
     const [headers, setHeaders] = useState(['Name', 'Age', 'Country']); // Initial headers
     const [leftTitle, setLeftTitle] = useState('Every 10.0 secs');
     const [centerTitle, setCenterTitle] = useState('Main Title');
     const [rightTitle, setRightTitle] = useState(getCurrentTime());
+    const [isConnected, setIsConnected] = useState(false);  // To track WebSocket connection status
 
     // Function to get the current time in the watch(1) format
     function getCurrentTime() {
@@ -31,17 +32,15 @@ function App() {
             setRightTitle(newRightTitle); // Update the rightTitle state
         }, 10000); // 10000ms = 10 seconds
 
-        // Clean up the interval on component unmount
-        return () => {
-            clearInterval(intervalId);
-        };
+        return () => clearInterval(intervalId);
     }, []);
 
-    useEffect(() => {
+    const createWebSocket = () => {
         const websocket = new WebSocket('ws://127.0.0.1:8080');
 
         websocket.onopen = () => {
             console.log('WebSocket connection established');
+            setIsConnected(true);  // Update connection status
         };
 
         websocket.onmessage = (event) => {
@@ -54,28 +53,15 @@ function App() {
                     if (jsonMessage.right) setRightTitle(jsonMessage.right);
                     if (jsonMessage.center) setCenterTitle(jsonMessage.center);
                 } else if (jsonMessage.command === 'SetHeaders') {
-                    //setHeaders(jsonMessage.headers); // Update headers
+                    // setHeaders(jsonMessage.headers); // Update headers
                 } else if (jsonMessage.command === 'SetDataRow') {
-                    // Extract index, value, name, country, and age from the message
                     const { index, name, country, age } = jsonMessage;
-                    // Update the row in showData based on the received index
                     setShowData((prevData) => {
                         const updatedData = [...prevData];
-                        // Check if the index exists; if not, push a new row
                         if (updatedData[index]) {
-                            updatedData[index] = {
-                                ...updatedData[index],  // Keep the other values intact
-                                name,                   // Update name
-                                country,                // Update country
-                                age,                    // Update age
-                            };
+                            updatedData[index] = { ...updatedData[index], name, country, age };
                         } else {
-                            // If index does not exist, add a new row
-                            updatedData.push({
-                                name,
-                                country,
-                                age,
-                            });
+                            updatedData.push({ name, country, age });
                         }
                         return updatedData;
                     });
@@ -83,29 +69,51 @@ function App() {
             } catch (error) {
                 console.error('Failed to parse WebSocket message:', error);
             }
-            console.log('Data now is', showData);
+            setMessage(event.data);
+        };
 
-            setMessage(event.data); // Update state with incoming message
+        websocket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            setIsConnected(false);  // Update connection status
+            reconnectWebSocket();   // Try to reconnect when an error occurs
         };
 
         websocket.onclose = () => {
             console.log('WebSocket connection closed');
+            setIsConnected(false);  // Update connection status
+            reconnectWebSocket();   // Try to reconnect when the connection closes
         };
 
         setWs(websocket);
+    };
+
+    const reconnectWebSocket = () => {
+        // Wait for a few seconds before trying to reconnect
+        setTimeout(() => {
+            console.log('Reconnecting WebSocket...');
+            createWebSocket();  // Recreate the WebSocket connection
+        }, 3000);  // Retry after 3 seconds
+    };
+
+    useEffect(() => {
+        createWebSocket();
 
         return () => {
-            websocket.close();
+            if (ws) {
+                ws.close();  // Close the WebSocket connection when the component unmounts
+            }
         };
     }, []);
 
     // Method to send a hello message in JSON format
     const sendJsonMessage = () => {
-        if (ws) {
+        if (ws && isConnected) {
             const messageObject = { greeting: 'Hello', from: 'React' };
-            const jsonMessage = JSON.stringify(messageObject); // Convert object to JSON string
-            ws.send(jsonMessage); // Send the JSON message over WebSocket
+            const jsonMessage = JSON.stringify(messageObject);
+            ws.send(jsonMessage);
             console.log('Sent JSON message:', jsonMessage);
+        } else {
+            console.log('WebSocket is not connected');
         }
     };
 
@@ -116,9 +124,11 @@ function App() {
 
             {/* Render table with dynamic headers and data */}
             <VigilantTable headers={headers} data={showData} />
+
+            {/* Button to send message */}
+            <button onClick={sendJsonMessage}>Send Message</button>
         </div>
     );
 }
 
 export default App;
-

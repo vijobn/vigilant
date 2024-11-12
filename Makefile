@@ -124,9 +124,9 @@ endif
 stop:
 	pm2 stop $(PROCESS_NAME) && pm2 delete $(PROCESS_NAME)
 
-clean:
+.PHONY:clean
+clean: stop
 	@echo "Cleaning up..."
-	pm2 stop $(PROCESS_NAME) && pm2 delete $(PROCESS_NAME)
 	rm -rf node_modules package.json package-lock.json
 	(cd $(TAURI_APP_NAME) && rm -rf node_modules package-lock.json)
 	@echo "Cleanup completed."
