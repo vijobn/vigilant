@@ -125,8 +125,6 @@ function App() {
             {/* Render table with dynamic headers and data */}
             <VigilantTable headers={headers} data={showData} />
 
-            {/* Button to send message */}
-            <button onClick={sendJsonMessage}>Send Message</button>
         </div>
     );
 }
