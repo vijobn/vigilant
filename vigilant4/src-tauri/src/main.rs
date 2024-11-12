@@ -44,6 +44,8 @@ struct GConf {
     cmdline: Vec<String>,  // Command line arguments
 }
 
+mod cmd;
+
 impl GConf {
     // Constructor to create a new GConf instance
     fn new() -> Self {
@@ -134,6 +136,7 @@ async fn main() {
     println!("argument to run {}", args.command);
     // Create a new configuration
     let gconf = Arc::new(Mutex::new(GConf::new()));
+    let _ = cmd::CmdOutput::new(&args.command);
 
     // Set the cmdline with a string
     gconf.lock().unwrap().set_cmdline(&args.command.to_string());
