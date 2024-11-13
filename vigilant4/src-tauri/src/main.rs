@@ -136,7 +136,6 @@ async fn main() {
     println!("argument to run {}", args.command);
     // Create a new configuration
     let gconf = Arc::new(Mutex::new(GConf::new()));
-    let _ = cmd::CmdOutput::new(&args.command);
 
     // Set the cmdline with a string
     gconf.lock().unwrap().set_cmdline(&args.command.to_string());
@@ -211,6 +210,7 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
         // Send the serialized JSON message as a WebSocket message
         writer.send(Message::Text(json_msg2)).await.unwrap();
 
+
         // Create a SetHeaders struct
         let hdr_message = SetHeaders {
             command: "SetHeaders".to_string(),
@@ -223,6 +223,13 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
         // Send the serialized JSON message as a WebSocket message
         writer.send(Message::Text(json_msg3)).await.unwrap();
 
+
+
+        let mut colines = cmd::CmdOutput::new(&cmdline.clone());
+
+        while let Some(ref line) = colines.as_mut().expect("Reee").next() {
+            println!("Cmd Output: {:?}", line);
+        }
 
         // Send data rows
         let rows = vec![
