@@ -226,59 +226,21 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
 
 
         let mut colines = cmd::CmdOutput::new(&cmdline.clone());
-
+        let mut idx  = 0;
         while let Some(ref line) = colines.as_mut().expect("Reee").next() {
             println!("Cmd Output: {:?}", line);
-        }
-
-        // Send data rows
-        let rows = vec![
-            SetDataRow {
+            let r = SetDataRow {
                 command: "SetDataRow".to_string(),
-                index: 0,
+                index: idx,
                 value: "Rusty Rust".to_string(),
-                name: "Rusty Lane".to_string(),
+                name: line.to_string(),
                 country: "USA".to_string(),
                 age: 40,
-            },
-            SetDataRow {
-                command: "SetDataRow".to_string(),
-                index: 1,
-                value: "John Doe".to_string(),
-                name: "John Doe".to_string(),
-                country: "USA".to_string(),
-                age: 25,
-            },
-            SetDataRow {
-                command: "SetDataRow".to_string(),
-                index: 2,
-                value: "Jane Smith".to_string(),
-                name: "Jane Smith".to_string(),
-                country: "Canada".to_string(),
-                age: 30,
-            },
-            SetDataRow {
-                command: "SetDataRow".to_string(),
-                index: 3,
-                value: "Rusty  Rust".to_string(),
-                name: "Sam Johnson".to_string(),
-                country: "UK".to_string(),
-                age: 22,
-            },
-            SetDataRow {
-                command: "SetDataRow".to_string(),
-                index: 4,
-                value: "Rusty  Rust".to_string(),
-                name: "Aby Thomas".to_string(),
-                country: "India".to_string(),
-                age: 36,
-            },
-        ];
-
-        for row in rows {
-            if let Err(e) = send_json_message(&mut writer, row).await {
+            };
+            if let Err(e) = send_json_message(&mut writer, r).await {
                 eprintln!("Failed to send data row: {}", e);
             }
+            idx += 1;
         }
 
         // Handle incoming messages
