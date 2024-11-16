@@ -13,7 +13,7 @@ HAS_CARGO := $(shell command -v $(CARGO) >/dev/null 2>&1 && echo "yes" || echo "
 
 # Ensure cargo is available
 ifeq ($(HAS_CARGO),no)
-$(error "Error: cargo is not available. Please install Rust and Cargo.")
+$(warning "Error: cargo is not available. Please install Rust and Cargo.")
 endif
 
 # Ensure running inside Docker
@@ -87,10 +87,46 @@ ifeq ($(IS_DOCKER),no)
 	$(error "NOT in docker container")
 endif
 
-start: build
-	(cd $(TAURI_APP_NAME) && npm start)
 
-clean:
+/usr/local/bin/pm2:
+	npm install -g pm2
+
+build: /usr/local/bin/pm2
+	(cd $(TAURI_APP_NAME)/src-tauri && cargo build)
+ifeq ($(IS_DOCKER),no)
+	$(error "NOT in docker container")
+endif
+
+PROCESS_NAME = vigilant-react
+NPM_CMD = npm start
+
+$(TAURI_APP_NAME)/package-lock.json $(TAURI_APP_NAME)/node_modules:
+	(cd $(TAURI_APP_NAME) && npm install)
+
+start: build $(TAURI_APP_NAME)/node_modules
+	@if pm2 list | grep -q "$(PROCESS_NAME)"; then \
+		echo "$(PROCESS_NAME) is running. Restarting..."; \
+		(cd $(TAURI_APP_NAME) && pm2 restart "$(PROCESS_NAME)"); \
+	else \
+		echo "$(PROCESS_NAME) is not running. Starting..."; \
+		(cd $(TAURI_APP_NAME) && pm2 start "$(NPM_CMD)" --name "$(PROCESS_NAME)"); \
+	fi
+
+.PHONY: ui
+ui:
+ifeq ($(IS_DOCKER),yes)
+	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
+else
+	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
+endif
+
+.PHONY: stop
+stop:
+	pm2 stop $(PROCESS_NAME) && pm2 delete $(PROCESS_NAME)
+
+.PHONY:clean
+clean: stop
 	@echo "Cleaning up..."
 	rm -rf node_modules package.json package-lock.json
+	(cd $(TAURI_APP_NAME) && rm -rf node_modules package-lock.json)
 	@echo "Cleanup completed."

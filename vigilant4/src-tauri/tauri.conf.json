@@ -3,7 +3,7 @@
   "build": {
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
-    "devPath": "http://172.17.0.2:3000",
+    "devPath": "http://172.17.0.3:4000",
     "distDir": "../build"
   },
   "package": {
@@ -57,12 +57,12 @@
       {
         "label": "main",
         "title": "Vigilant App",
-        "width": 800,
+        "width": 1000,
         "height": 600,
         "resizable": true,
         "fullscreen": false,
         "decorations": true,
-        "url": "http://172.17.0.2:3000"
+        "url": "http://172.17.0.3:4000"
       }
     ]
   }

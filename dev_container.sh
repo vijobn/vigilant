@@ -6,8 +6,6 @@ root_dir=$(dirname $(dirname "$current_dir"))
 root_dirname=$(basename "$root_dir")
 if [ "$root_dirname" == "b2b" ]; then
   echo "Running inside b2b"
-else
-  [ -d ./b2b ] || (echo "B2B GIT repo not found, exiting"; exit 77); [ "$?" -eq 77 ]  && exit 2
 fi
 
 CONTAINER=vig4
@@ -35,12 +33,23 @@ fi
 # Allow Docker containers to connect to the X server
 xhost +local:docker
 
-# Start the Docker container with X11 forwarding
+# Starting port
+HOST_PORT=4000
+
+# Check if port is already in use
+while sudo lsof -i :$HOST_PORT > /dev/null 2>&1; do
+  # If port is in use, increment by 10
+  HOST_PORT=$((HOST_PORT + 10))
+done
+
+# Run the Docker container with the chosen port
 sudo docker run -it --rm \
-    -e DISPLAY=$DISPLAY \
-    --env="QT_X11_NO_MITSHM=1" \
-    -v /tmp/.X11-unix:/tmp/.X11-unix \
-    -v ${PWD}:/usr/src/app/ \
-    -p 3000:3000 \
-    ${CONTAINER} \
-    /bin/bash
+  -e DISPLAY=$DISPLAY \
+  --env="QT_X11_NO_MITSHM=1" \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v ${PWD}:/usr/src/app/ \
+  -p ${HOST_PORT}:4000 \
+  ${CONTAINER} \
+  /bin/bash -c "echo -e '\nHost port: $HOST_PORT\n'; /bin/bash"
+
+echo "Was using port $HOST_PORT"
