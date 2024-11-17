@@ -59,6 +59,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN npm install -g @tauri-apps/cli
 
+RUN apt-get install -y libjavascriptcoregtk-4.1-dev pkg-config
+RUN apt-get install -y libwebkit2gtk-4.1-dev pkg-config
+RUN pkg-config --libs --cflags webkit2gtk-4.1
 
 #RUN     npm install 
 #RUN     npm install react-scripts@3.0.1 -g --silent

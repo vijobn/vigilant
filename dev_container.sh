@@ -8,7 +8,7 @@ if [ "$root_dirname" == "b2b" ]; then
   echo "Running inside b2b"
 fi
 
-CONTAINER=vig4
+CONTAINER=vig5
 
 # Make symlink to docker for this dev environment
 #cp b2b/apps/tauri1/Dockerfile . || /bin/true

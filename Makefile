@@ -1,6 +1,6 @@
 # Specify the desired Node.js version
 NODE_VERSION := 18.16.0  # Change this to your desired version
-TAURI_APP_NAME := vigilant4
+TAURI_APP_NAME := vigilant
 # Define variables
 #TARGET = target/debug/c5app
 CARGO = cargo
@@ -87,6 +87,8 @@ ifeq ($(IS_DOCKER),no)
 	$(error "NOT in docker container")
 endif
 
+/usr/local/bin/pnpm:
+	npm install -g pnpm
 
 /usr/local/bin/pm2:
 	npm install -g pm2
@@ -98,22 +100,23 @@ ifeq ($(IS_DOCKER),no)
 endif
 
 PROCESS_NAME = vigilant-react
-NPM_CMD = npm start
+NPM_CMD = pnpm start
 
 $(TAURI_APP_NAME)/package-lock.json $(TAURI_APP_NAME)/node_modules:
-	(cd $(TAURI_APP_NAME) && npm install)
+	(cd $(TAURI_APP_NAME) && pnpm install)
 
 start: build $(TAURI_APP_NAME)/node_modules
-	@if pm2 list | grep -q "$(PROCESS_NAME)"; then \
-		echo "$(PROCESS_NAME) is running. Restarting..."; \
-		(cd $(TAURI_APP_NAME) && pm2 restart "$(PROCESS_NAME)"); \
-	else \
-		echo "$(PROCESS_NAME) is not running. Starting..."; \
-		(cd $(TAURI_APP_NAME) && pm2 start "$(NPM_CMD)" --name "$(PROCESS_NAME)"); \
-	fi
+	#@if pm2 list | grep -q "$(PROCESS_NAME)"; then \
+	#	echo "$(PROCESS_NAME) is running. Restarting..."; \
+	#	(cd $(TAURI_APP_NAME) && pm2 restart "$(PROCESS_NAME)"); \
+	#else \
+	#	echo "$(PROCESS_NAME) is not running. Starting..."; \
+	#	(cd $(TAURI_APP_NAME) && pm2 start "$(NPM_CMD)" --name "$(PROCESS_NAME)"); \
+	#fi
+	(cd $(TAURI_APP_NAME) && pnpm tauri dev)
 
 .PHONY: ui
-ui:
+ui: start
 ifeq ($(IS_DOCKER),yes)
 	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
 else
