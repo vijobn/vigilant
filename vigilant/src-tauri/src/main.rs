@@ -194,7 +194,7 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
             eprintln!("Error sending message: {}", e);
 
             // Create an Env reference for restart
-            let env = Env::default();  // Create a default Env object (you can modify this if needed)
+            let env = Env::default();  // Create a default Env object
 
             // Restart the Tauri app
             restart(&env);
