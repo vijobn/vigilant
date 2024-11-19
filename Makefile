@@ -119,9 +119,10 @@ start: $(TAURI_APP_NAME)/node_modules
 devui:
 	@echo "Watching for changes..."
 	@while true; do \
-		make ui; \
+		make ui || break; \
 	    #inotifywait -e modify -e create -e delete -r ./vigilant ./README.md ./Makefile; \
 	    #echo "Changes detected, rebuilding..."; \
+		sleep 1; \
 	done
 
 .PHONY: ui
