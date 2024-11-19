@@ -113,12 +113,13 @@ start: build $(TAURI_APP_NAME)/node_modules
 	#	echo "$(PROCESS_NAME) is not running. Starting..."; \
 	#	(cd $(TAURI_APP_NAME) && pm2 start "$(NPM_CMD)" --name "$(PROCESS_NAME)"); \
 	#fi
-	(cd $(TAURI_APP_NAME) && pnpm tauri dev)
+	#(cd $(TAURI_APP_NAME) && pnpm tauri dev)
 
 .PHONY: ui
 ui: start
 ifeq ($(IS_DOCKER),yes)
-	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
+	#(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
+	(cd $(TAURI_APP_NAME) && pnpm tauri dev)
 else
 	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
 endif
