@@ -52,7 +52,7 @@ function App() {
                     if (jsonMessage.left) setLeftTitle(jsonMessage.left);
                     if (jsonMessage.right) setRightTitle(jsonMessage.right);
                     if (jsonMessage.center) setCenterTitle(jsonMessage.center);
-                    console.log("Done setting Title");
+                    console.log("Done setting Title ", jsonMessage);
                 } else if (jsonMessage.command === 'SetHeaders') {
                     console.log("Setting headers");
                     setHeaders(jsonMessage.headers); // Update headers

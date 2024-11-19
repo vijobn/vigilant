@@ -5,10 +5,11 @@ use futures_util::{SinkExt, StreamExt};
 use serde_json::Value;
 use serde_json::json;
 use std::sync::{Arc, Mutex};
-use serde::{Serialize, Deserialize};  // Add Deserialize here as well
+use serde::{Serialize, Deserialize};
 use std::thread;
+use std::process;
 use tokio::time::Duration;
-use tauri::process::restart;
+use tauri::Env;
 
 #[derive(Serialize)]
 struct WelcomeMessage {
@@ -16,7 +17,7 @@ struct WelcomeMessage {
     timestamp: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 struct SetTitle {
     command: String,
     center: String,
@@ -28,7 +29,7 @@ struct SetHeaders {
     headers: Vec<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 struct SetDataRow {
     command: String,
     index: i32,
@@ -169,7 +170,7 @@ where
     println!("Sent message: {}", json_message);
     Ok(())
 }
-use tauri::Env;
+
 async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
     let addr = "127.0.0.1:8080".parse::<SocketAddr>().unwrap();
     let listener = TcpListener::bind(&addr).await.unwrap();
@@ -193,14 +194,7 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
             // Handle the error (e.g., logging)
             eprintln!("Error sending message: {}", e);
 
-            // Create an Env reference for restart
-            let env = Env::default();  // Create a default Env object
-
-            // Restart the Tauri app
-            restart(&env);
-
-            // Return the error to propagate it
-            return;
+            process::exit(1);
         }
 
         // Sending the title message
@@ -211,9 +205,11 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
 
         let cmdline = gconf.lock().unwrap().get_cmdline();
         title_message.center = cmdline.clone();
+        println!("Cmdline: {}", cmdline);
+        println!("title msg : {:?}", title_message);
 
         if let Err(e) = send_json_message(&mut writer, title_message).await {
-            eprintln!("Failed to send data row: {}", e);
+            eprintln!("Failed to send title message: {}", e);
         }
 
         // Sending headers message
@@ -247,6 +243,10 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
         loop {
             println!("10 seconds have passed");
             thread::sleep(Duration::from_secs(10));
+            match colines.as_mut().expect("cmd bad").clone().execute(&cmdline.clone()) {
+                Ok(op) => println!("Output {:?}", op),
+                Err(e) => println!("Error executing command {:?}", e),
+            }
         }
 
         // Reading and handling incoming messages

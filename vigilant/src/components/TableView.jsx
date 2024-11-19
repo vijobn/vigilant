@@ -10,7 +10,7 @@ const VigilantTable = ({ headers, data }) => {
 
   // Helper function to safely access data properties
   const getCellData = (row, header) => {
-    console.log("row is", row, "looking for header", header);
+    //console.log("row is", row, "looking for header", header);
     const key = header.toLowerCase().trim(); // Normalize header for matching
     return row[key] || '-'; // Return the value if it exists, otherwise fallback to "-"
     //return "My custom name";
