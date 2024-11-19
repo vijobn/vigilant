@@ -144,15 +144,20 @@ use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::tungstenite::error::Error;
 use futures_util::stream::SplitSink;
 
-async fn send_json_message(
+pub async fn send_json_message<T>(
     writer: &mut SplitSink<WebSocketStream<tokio::net::TcpStream>, Message>,
-    rdata: SetDataRow,
-) -> Result<(), Box<dyn std::error::Error>> {
+    rdata: T,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    T: Serialize,
+{
+    // Serialize the data to JSON
     let json_message = serde_json::to_string(&rdata).map_err(|e| {
         eprintln!("Serialization error: {}", e);
         e
     })?;
 
+    // Send the message
     writer.send(Message::Text(json_message.clone())).await.map_err(|e| {
         eprintln!("Error sending message: {}", e);
         e
@@ -191,8 +196,9 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
         let cmdline = gconf.lock().unwrap().get_cmdline();
         title_message.center = cmdline.clone();
 
-        let json_msg2 = serde_json::to_string(&title_message).unwrap();
-        writer.send(Message::Text(json_msg2)).await.unwrap();
+        if let Err(e) = send_json_message(&mut writer, title_message).await {
+            eprintln!("Failed to send data row: {}", e);
+        }
 
         // Sending headers message
         let hdr_message = SetHeaders {
@@ -200,8 +206,9 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
             headers: vec!["name".to_string(), "age".to_string(), "country".to_string()],
         };
 
-        let json_msg3 = serde_json::to_string(&hdr_message).unwrap();
-        writer.send(Message::Text(json_msg3)).await.unwrap();
+        if let Err(e) = send_json_message(&mut writer, hdr_message).await {
+            eprintln!("Failed to send headers: {}", e);
+        }
 
         // Sending data rows
         let mut colines = cmd::CmdOutput::new(&cmdline.clone());
