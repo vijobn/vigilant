@@ -6,6 +6,9 @@ use serde_json::Value;
 use serde_json::json;
 use std::sync::{Arc, Mutex};
 use serde::{Serialize, Deserialize};  // Add Deserialize here as well
+use std::thread;
+use tokio::time::Duration;
+use tauri::process::restart;
 
 #[derive(Serialize)]
 struct WelcomeMessage {
@@ -166,7 +169,7 @@ where
     println!("Sent message: {}", json_message);
     Ok(())
 }
-
+use tauri::Env;
 async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
     let addr = "127.0.0.1:8080".parse::<SocketAddr>().unwrap();
     let listener = TcpListener::bind(&addr).await.unwrap();
@@ -185,7 +188,20 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
         };
 
         let json_message = serde_json::to_string(&welcome_message).unwrap();
-        writer.send(Message::Text(json_message)).await.unwrap();
+        //writer.send(Message::Text(json_message)).await.unwrap();
+        if let Err(e) = writer.send(Message::Text(json_message)).await {
+            // Handle the error (e.g., logging)
+            eprintln!("Error sending message: {}", e);
+
+            // Create an Env reference for restart
+            let env = Env::default();  // Create a default Env object (you can modify this if needed)
+
+            // Restart the Tauri app
+            restart(&env);
+
+            // Return the error to propagate it
+            return;
+        }
 
         // Sending the title message
         let mut title_message = SetTitle {
@@ -226,6 +242,11 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
                 eprintln!("Failed to send data row: {}", e);
             }
             idx += 1;
+        }
+
+        loop {
+            println!("10 seconds have passed");
+            thread::sleep(Duration::from_secs(10));
         }
 
         // Reading and handling incoming messages

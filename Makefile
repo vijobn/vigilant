@@ -105,7 +105,7 @@ NPM_CMD = pnpm start
 $(TAURI_APP_NAME)/package-lock.json $(TAURI_APP_NAME)/node_modules:
 	(cd $(TAURI_APP_NAME) && pnpm install)
 
-start: build $(TAURI_APP_NAME)/node_modules
+start: $(TAURI_APP_NAME)/node_modules
 	#@if pm2 list | grep -q "$(PROCESS_NAME)"; then \
 	#	echo "$(PROCESS_NAME) is running. Restarting..."; \
 	#	(cd $(TAURI_APP_NAME) && pm2 restart "$(PROCESS_NAME)"); \
@@ -115,8 +115,22 @@ start: build $(TAURI_APP_NAME)/node_modules
 	#fi
 	#(cd $(TAURI_APP_NAME) && pnpm tauri dev)
 
+.PHONY: devui
+devui:
+	@echo "Watching for changes..."
+	@while true; do \
+		make ui; \
+	    #inotifywait -e modify -e create -e delete -r ./vigilant ./README.md ./Makefile; \
+	    #echo "Changes detected, rebuilding..."; \
+	done
+
 .PHONY: ui
-ui: start
+ui: build start
+	@echo "Waiting for TIME_WAIT states on port $(TARGET_PORT) to clear..."
+	@while netstat -ant | grep ":$(TARGET_PORT)" | grep -q "TIME_WAIT"; do \
+	    echo "TIME_WAIT exists for port $(TARGET_PORT), retrying in 2 seconds..."; \
+	    sleep 2; \
+	done
 ifeq ($(IS_DOCKER),yes)
 	#(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
 	(cd $(TAURI_APP_NAME) && pnpm tauri dev)

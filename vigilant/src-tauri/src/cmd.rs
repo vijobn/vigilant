@@ -79,6 +79,7 @@ impl CmdOutput {
             //.args(&args[1..])
             .output();
 
+        self.current = 0;
         match output {
             Ok(output) => {
                 if !output.status.success() {
