@@ -121,7 +121,7 @@ struct Args {
     exec: bool,
 
     /// The command to run
-    #[arg(default_value = "/bin/lslogins")]
+    #[arg(default_value = "/usr/bin/lsattr")]
     command: String,
 }
 
@@ -243,8 +243,27 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
         loop {
             println!("10 seconds have passed");
             thread::sleep(Duration::from_secs(10));
+            let mut oplines: Vec<String>;
             match colines.as_mut().expect("cmd bad").clone().execute(&cmdline.clone()) {
-                Ok(op) => println!("Output {:?}", op),
+                Ok(oplines) => {
+                    //println!("{} Outputs {:?}", cmdline.clone(), oplines);
+                    println!("No of output lines {}", oplines.len());
+                    let changed = colines.as_mut().expect("cmd bad 2").update_lines(oplines.clone()).expect("update bad");
+                    for idx in 0..changed.len() {
+                        let oline = colines.as_ref().expect("cmd bad 3").clone().get_output_line(changed[idx]).expect("bad outputline");
+                        let r = SetDataRow {
+                            command: "SetDataRow".to_string(),
+                            index: idx as i32,
+                            value: "Rusty Rust".to_string(),
+                            name: oline.to_string(),
+                            country: "USA".to_string(),
+                            age: 40,
+                        };
+                        if let Err(e) = send_json_message(&mut writer, r).await {
+                            eprintln!("Failed to send data row: {}", e);
+                        }
+                    }
+                },
                 Err(e) => println!("Error executing command {:?}", e),
             }
         }

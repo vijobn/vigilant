@@ -68,14 +68,14 @@ impl CmdOutput {
     // }
 
     /// Executes a given command line string and returns a CmdOutput struct.
-    pub fn execute(mut self, cmdline: &str) -> Result<Vec<String>, io::Error> {
+    pub fn execute(&mut self, cmdline: &str) -> Result<Vec<String>, io::Error> {
         // Ensure that there is at least one argument (the command itself)
         if self.cmdname.is_empty() {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "No command provided"));
         }
 
         // Execute the command
-        let output = Command::new(self.cmdname)
+        let output = Command::new(self.cmdname.clone())
             //.args(&args[1..])
             .output();
 
@@ -102,6 +102,30 @@ impl CmdOutput {
                 Err(e)
             }
         }
+    }
+
+    pub fn update_lines(&mut self, oplines: Vec<String>) -> Result<Vec<usize>, String> {
+        let mut changed =  Vec::new();
+
+        for oi in 0..self.output.len() {
+            if self.output[oi] != oplines[oi] {
+                println!("Found a new update on line numbered {} is {}", oi, oplines[oi]);
+                println!("Found a old update on line numbered {} is {}", oi, self.output[oi]);
+                self.output[oi] = oplines[oi].clone();
+                println!("Now line is {}", self.output[oi]);
+                changed.push(oi);
+            }
+        }
+        self.current = 0;
+
+        Ok(changed)
+    }
+
+    pub fn get_output_line(mut self, num: usize) -> Option<String> {
+        if num < self.output.len() {
+            return Some(self.output[num].clone());
+        }
+        None
     }
 
     pub fn next(&mut self) -> Option<String> {

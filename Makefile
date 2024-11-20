@@ -102,7 +102,7 @@ endif
 PROCESS_NAME = vigilant-react
 NPM_CMD = pnpm start
 
-$(TAURI_APP_NAME)/package-lock.json $(TAURI_APP_NAME)/node_modules:
+$(TAURI_APP_NAME)/package-lock.json $(TAURI_APP_NAME)/node_modules $(TAURI_APP_NAME)/pnpm-lock.yaml:
 	(cd $(TAURI_APP_NAME) && pnpm install)
 
 start: $(TAURI_APP_NAME)/node_modules

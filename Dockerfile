@@ -57,6 +57,7 @@ RUN apt-get update && apt-get install -y \
     libjavascriptcoregtk-4.0-dev \
     libglib2.0-dev
 
+RUN npm install -g pnpm
 RUN npm install -g @tauri-apps/cli
 
 RUN apt-get install -y libjavascriptcoregtk-4.1-dev pkg-config

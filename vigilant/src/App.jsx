@@ -6,7 +6,7 @@ function App() {
     const [message, setMessage] = useState('');
     const [ws, setWs] = useState(null);
     const [showData, setShowData] = useState([]);
-    const [headers, setHeaders] = useState(['Name', 'Age', 'Country']); // Initial headers
+    const [headers, setHeaders] = useState([]);
     const [leftTitle, setLeftTitle] = useState('Every 10.0 secs');
     const [centerTitle, setCenterTitle] = useState('Main Title');
     const [rightTitle, setRightTitle] = useState(getCurrentTime());
