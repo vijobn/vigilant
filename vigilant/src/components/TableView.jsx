@@ -8,12 +8,6 @@ const VigilantTable = ({ headers, data }) => {
     console.log('Data received in VigilantTable:', data);
   }, [headers, data]);
 
-  // Helper function to safely access data properties
-  const getCellData = (row, header) => {
-    const key = header.toLowerCase().trim(); // Normalize header for matching
-    return row[key] || '-'; // Return the value if it exists, otherwise fallback to "-"
-  };
-
   // If no data, render an empty table body
   return (
     <div style={{ margin: '20px' }}>
@@ -28,15 +22,21 @@ const VigilantTable = ({ headers, data }) => {
         <MDBTableBody>
           {data && data.length > 0 ? (
             data.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {headers.map((header, headerIndex) => (
-                  <td key={headerIndex}>{getCellData(row, header)}</td>
-                ))}
-              </tr>
+              row.values ? ( // Access the 'values' array from the row object
+                <tr key={rowIndex}>
+                  {row.values.map((cell, cellIndex) => (
+                    <td key={cellIndex}>{cell || '-'}</td> // Fallback to "-" if cell is empty
+                  ))}
+                </tr>
+              ) : (
+                <tr key={rowIndex}>
+                  <td colSpan={headers.length || 1}>Invalid row format</td>
+                </tr>
+              )
             ))
           ) : (
             <tr>
-              <td colSpan={headers.length || 1}></td> {/* Empty row */}
+              <td colSpan={headers.length || 1}>No data available</td>
             </tr>
           )}
         </MDBTableBody>
@@ -46,4 +46,3 @@ const VigilantTable = ({ headers, data }) => {
 };
 
 export default VigilantTable;
-

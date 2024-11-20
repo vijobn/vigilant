@@ -33,10 +33,7 @@ struct SetHeaders {
 struct SetDataRow {
     command: String,
     index: i32,
-    value: String,
-    name: String,
-    country: String,
-    age: i32,
+    values: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -229,10 +226,7 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
             let r = SetDataRow {
                 command: "SetDataRow".to_string(),
                 index: idx,
-                value: "Rusty Rust".to_string(),
-                name: line.to_string(),
-                country: "USA".to_string(),
-                age: 40,
+                values: vec![line.to_string(), 40.to_string(), "USA".to_string()],
             };
             if let Err(e) = send_json_message(&mut writer, r).await {
                 eprintln!("Failed to send data row: {}", e);
@@ -254,10 +248,7 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
                         let r = SetDataRow {
                             command: "SetDataRow".to_string(),
                             index: idx as i32,
-                            value: "Rusty Rust".to_string(),
-                            name: oline.to_string(),
-                            country: "USA".to_string(),
-                            age: 40,
+                            values: vec![oline.to_string(), 40.to_string(), "USA".to_string()],
                         };
                         if let Err(e) = send_json_message(&mut writer, r).await {
                             eprintln!("Failed to send data row: {}", e);

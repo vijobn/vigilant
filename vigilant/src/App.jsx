@@ -57,17 +57,19 @@ function App() {
                     console.log("Setting headers");
                     setHeaders(jsonMessage.headers); // Update headers
                 } else if (jsonMessage.command === 'SetDataRow') {
-                    const { index, name, country, age } = jsonMessage;
+                    const { index, values } = jsonMessage;
                     console.log("Setting data");
                     setShowData((prevData) => {
                         const updatedData = [...prevData];
                         if (updatedData[index]) {
-                            updatedData[index] = { ...updatedData[index], name, country, age };
+                          // Update the existing entry using the values array
+                          updatedData[index] = { ...updatedData[index], values };
                         } else {
-                            updatedData.push({ name, country, age });
+                          // Add a new entry with the values array
+                          updatedData.push({ values });
                         }
                         return updatedData;
-                    });
+                      });
                 }
             } catch (error) {
                 console.error('Failed to parse WebSocket message:', error);
