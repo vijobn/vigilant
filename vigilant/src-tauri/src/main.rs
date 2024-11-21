@@ -238,7 +238,7 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
             let r = SetDataRow {
                 command: "SetDataRow".to_string(),
                 index: idx,
-                values: vec![line.to_string(), 40.to_string(), "USA".to_string()],
+                values: vec![line.to_string()],
             };
             if let Err(e) = send_json_message(&mut writer, r).await {
                 eprintln!("Failed to send data row: {}", e);
@@ -260,7 +260,7 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
                         let r = SetDataRow {
                             command: "SetDataRow".to_string(),
                             index: idx as i32,
-                            values: vec![oline.to_string(), 40.to_string(), "USA".to_string()],
+                            values: vec![oline.to_string()],
                         };
                         if let Err(e) = send_json_message(&mut writer, r).await {
                             eprintln!("Failed to send data row: {}", e);
