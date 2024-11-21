@@ -118,7 +118,7 @@ struct Args {
     exec: bool,
 
     /// The command to run
-    #[arg(default_value = "/usr/bin/lsattr")]
+    #[arg(default_value = "/usr/bin/lsmem")]
     command: String,
 }
 
@@ -209,18 +209,30 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
             eprintln!("Failed to send title message: {}", e);
         }
 
-        // Sending headers message
-        let hdr_message = SetHeaders {
-            command: "SetHeaders".to_string(),
-            headers: vec!["name".to_string(), "age".to_string(), "country".to_string()],
-        };
+        let mut colines = cmd::CmdOutput::new(&cmdline.clone());
 
-        if let Err(e) = send_json_message(&mut writer, hdr_message).await {
-            eprintln!("Failed to send headers: {}", e);
+        // Sending headers message
+        match colines {
+            Ok(ref mut colines_ref) => match colines_ref.get_headers() {
+                Ok(hdrs) => {
+                    println!("Headers: {:?}", hdrs);
+                    // Create the SetHeaders message using hdrs
+                    let hdr_message = SetHeaders {
+                        command: "SetHeaders".to_string(),
+                        headers: hdrs,
+                    };
+                    if let Err(e) = send_json_message(&mut writer, hdr_message).await {
+                        eprintln!("Failed to send headers: {}", e);
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Error getting headers: {}", e);
+                },
+            },
+            Err(ref e) => eprintln!("Error: {}", e), // Handling the error case from colines
         }
 
         // Sending data rows
-        let mut colines = cmd::CmdOutput::new(&cmdline.clone());
         let mut idx = 0;
         while let Some(ref line) = colines.as_mut().expect("Reee").next() {
             let r = SetDataRow {

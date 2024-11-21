@@ -12,13 +12,14 @@ const VigilantTable = ({ headers, data }) => {
   return (
     <div style={{ margin: '20px' }}>
       <MDBTable striped hover>
-        <MDBTableHead>
-          <tr>
-            {headers.map((header, index) => (
-              <th key={index}>{header}</th>
-            ))}
-          </tr>
-        </MDBTableHead>
+      <MDBTableHead>
+        <tr>
+          {headers.map((header, index) => (
+            <th key={index} style={{ fontWeight: 'bold' }}>{header}</th>
+          ))}
+        </tr>
+      </MDBTableHead>
+
         <MDBTableBody>
           {data && data.length > 0 ? (
             data.map((row, rowIndex) => (

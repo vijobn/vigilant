@@ -12,6 +12,7 @@ pub struct CmdOutput {
         cmdname: String,
         //cmdargs: Vec<str>,
         current: usize,
+        headers: Option<Vec<String>>,
 }
 
 impl CmdOutput {
@@ -49,6 +50,7 @@ impl CmdOutput {
                     cmdline: cmdline.to_string(),
                     timestamp: Utc::now().to_rfc3339(), // Timestamp when the command was executed
                     output: output_lines,
+                    headers: None,
                     cmdname: args[0].to_string(),
                     //cmdargs: args[1..].to_vec()
                     current: 0
@@ -102,6 +104,23 @@ impl CmdOutput {
                 Err(e)
             }
         }
+    }
+
+    pub fn get_headers(&mut self) -> Result<Vec<String>, io::Error> {
+        // Ensure that there is at least one argument (the command itself)
+        if self.cmdname.is_empty() {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "No command provided"));
+        }
+        if self.output.len() == 0 {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "No output from cmdline"));
+        }
+        let hdrs = self.output[0].clone();
+        let is_all_uppercase = hdrs.chars().all(|c| !c.is_alphabetic() || c.is_uppercase());
+        if is_all_uppercase {
+            self.headers = Some(hdrs.split_whitespace().map(String::from).collect::<Vec<String>>());
+            return Ok(self.headers.clone().expect("Headers bad"));
+        }
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Headers are not all uppercase"))
     }
 
     pub fn update_lines(&mut self, oplines: Vec<String>) -> Result<Vec<usize>, String> {
