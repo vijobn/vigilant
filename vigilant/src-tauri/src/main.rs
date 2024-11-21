@@ -270,28 +270,5 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
                 Err(e) => println!("Error executing command {:?}", e),
             }
         }
-
-        // Reading and handling incoming messages
-        while let Some(message) = reader.next().await {
-            match message {
-                Ok(Message::Text(text)) => {
-                    match serde_json::from_str::<Value>(&text) {
-                        Ok(json_message) => {
-                            println!("Received message: {:?}", json_message);
-                        }
-                        Err(err) => {
-                            println!("Error parsing JSON: {}", err);
-                        }
-                    }
-
-                    let response = "Hello from Rust WebSocket server!";
-                    if let Err(e) = writer.send(Message::Text(response.to_string())).await {
-                        eprintln!("Failed to send response: {}", e);
-                    }
-                }
-                Ok(Message::Close(_)) => break,
-                _ => {}
-            }
-        }
     }
 }

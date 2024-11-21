@@ -135,6 +135,22 @@ impl CmdOutput {
                 changed.push(oi);
             }
         }
+        let mut start: usize = 0;
+        let mut end: usize;
+        if oplines.len() > self.output.len() {
+            start = self.output.len();
+            end = oplines.len();
+            for oi in start..end {
+                changed.push(oi);
+            }
+        } else if oplines.len() < self.output.len() {
+            start = oplines.len();
+            end = self.output.len();
+            for oi in start..end {
+                changed.push(oi);
+            }
+        }
+
         self.current = 0;
 
         Ok(changed)
