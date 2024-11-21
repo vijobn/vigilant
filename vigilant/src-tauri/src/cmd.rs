@@ -13,6 +13,7 @@ pub struct CmdOutput {
         //cmdargs: Vec<str>,
         current: usize,
         headers: Option<Vec<String>>,
+        outcols: Option<Vec<Vec<String>>>,
 }
 
 impl CmdOutput {
@@ -51,6 +52,7 @@ impl CmdOutput {
                     timestamp: Utc::now().to_rfc3339(), // Timestamp when the command was executed
                     output: output_lines,
                     headers: None,
+                    outcols: None,
                     cmdname: args[0].to_string(),
                     //cmdargs: args[1..].to_vec()
                     current: 0
@@ -163,14 +165,23 @@ impl CmdOutput {
         None
     }
 
-    pub fn next(&mut self) -> Option<String> {
+    pub fn get_output_cols(mut self, num: usize) -> Option<Vec<String>> {
+        if num < self.output.len() {
+            let ocols = self.output[num].split_whitespace().map(String::from).collect::<Vec<String>>();
+            return Some(ocols);
+        }
+        None
+    }
+
+    pub fn next(&mut self) -> Option<Vec<String>> {
         // Check if the current index is within bounds
         println!("Next with current: {}", self.current);
         if self.current < self.output.len() {
             // Return the next output line and increment the index
-            let value = self.output[self.current].clone();
+            //let value = self.output[self.current].clone();
+            let ocols = self.output[self.current].split_whitespace().map(String::from).collect::<Vec<String>>();
             self.current += 1;
-            Some(value)
+            Some(ocols)
         } else {
             // Return None when we've exhausted all elements in the output Vec
             None

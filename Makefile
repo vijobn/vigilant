@@ -106,13 +106,6 @@ $(TAURI_APP_NAME)/package-lock.json $(TAURI_APP_NAME)/node_modules $(TAURI_APP_N
 	(cd $(TAURI_APP_NAME) && pnpm install)
 
 start: $(TAURI_APP_NAME)/node_modules
-	#@if pm2 list | grep -q "$(PROCESS_NAME)"; then \
-	#	echo "$(PROCESS_NAME) is running. Restarting..."; \
-	#	(cd $(TAURI_APP_NAME) && pm2 restart "$(PROCESS_NAME)"); \
-	#else \
-	#	echo "$(PROCESS_NAME) is not running. Starting..."; \
-	#	(cd $(TAURI_APP_NAME) && pm2 start "$(NPM_CMD)" --name "$(PROCESS_NAME)"); \
-	#fi
 	#(cd $(TAURI_APP_NAME) && pnpm tauri dev)
 
 .PHONY: devui
@@ -139,6 +132,8 @@ else
 	(cd $(TAURI_APP_NAME)/ && ./src-tauri/target/debug/vigilant lslogins)
 endif
 
+package:
+	(cd $(TAURI_APP_NAME) && pnpm tauri build)
 .PHONY: stop
 stop:
 	pm2 stop $(PROCESS_NAME) && pm2 delete $(PROCESS_NAME)

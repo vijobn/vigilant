@@ -118,7 +118,7 @@ struct Args {
     exec: bool,
 
     /// The command to run
-    #[arg(default_value = "/usr/bin/lsmem")]
+    #[arg(default_value = "/usr/bin/lsfd")]
     command: String,
 }
 
@@ -234,11 +234,11 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
 
         // Sending data rows
         let mut idx = 0;
-        while let Some(ref line) = colines.as_mut().expect("Reee").next() {
+        while let Some(lines) = colines.as_mut().expect("Reee").next() {
             let r = SetDataRow {
                 command: "SetDataRow".to_string(),
                 index: idx,
-                values: vec![line.to_string()],
+                values: lines,
             };
             if let Err(e) = send_json_message(&mut writer, r).await {
                 eprintln!("Failed to send data row: {}", e);
@@ -256,11 +256,23 @@ async fn start_websocket_server(gconf: Arc<Mutex<GConf>>) {
                     println!("No of output lines {}", oplines.len());
                     let changed = colines.as_mut().expect("cmd bad 2").update_lines(oplines.clone()).expect("update bad");
                     for idx in 0..changed.len() {
-                        let oline = colines.as_ref().expect("cmd bad 3").clone().get_output_line(changed[idx]).expect("bad outputline");
+                        let olines = match colines.as_ref() {
+                            Ok(colines_ref) => match colines_ref.clone().get_output_cols(changed[idx]) {
+                                Some(lines) => lines,
+                                None => {
+                                    eprintln!("Error getting output line for index {}", idx);
+                                    return;
+                                }
+                            },
+                            Err(e) => {
+                                eprintln!("Error: failed to access colines: {}", e);
+                                return; // Propagate the error or handle it appropriately
+                            }
+                        };
                         let r = SetDataRow {
                             command: "SetDataRow".to_string(),
                             index: idx as i32,
-                            values: vec![oline.to_string()],
+                            values: olines,
                         };
                         if let Err(e) = send_json_message(&mut writer, r).await {
                             eprintln!("Failed to send data row: {}", e);
